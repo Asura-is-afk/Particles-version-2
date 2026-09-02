@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Particle Gesture Controller</title>
+  <title>Interactive Particle Gestures</title>
   <style>
     body {
       margin: 0;
       overflow: hidden;
       background-color: #030308;
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Arial, sans-serif;
     }
     #canvas-container {
       width: 100vw;
@@ -23,13 +23,14 @@
       position: absolute;
       bottom: 15px;
       right: 15px;
-      width: 140px;
-      height: 105px;
+      width: 130px;
+      height: 98px;
       border-radius: 8px;
       border: 2px solid #00f0ff;
       transform: scaleX(-1);
       z-index: 2;
       object-fit: cover;
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
     }
     #ui-overlay {
       position: absolute;
@@ -45,22 +46,24 @@
       border-radius: 10px;
       border-left: 4px solid #00f0ff;
       box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+      backdrop-filter: blur(5px);
     }
     .status-card h3 {
       margin: 0 0 6px 0;
-      font-size: 16px;
+      font-size: 15px;
       color: #00f0ff;
+      letter-spacing: 1px;
     }
     .gesture-hint {
-      font-size: 13px;
-      line-height: 1.5;
+      font-size: 12px;
+      line-height: 1.6;
       color: #e0e0e0;
     }
   </style>
 
-  <!-- Three.js -->
+  <!-- Three.js Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <!-- MediaPipe -->
+  <!-- MediaPipe Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 </head>
@@ -72,8 +75,9 @@
       <p id="gesture-status" style="font-weight: bold; color: #ff007f; margin: 0 0 6px 0;">Status: Starting Camera...</p>
       <div class="gesture-hint">
         🖐️ <b>Open Hand</b> ➔ Text "BHUMI & AYUSH"<br>
-        👍 <b>Thumbs Up</b> ➔ Heart Shape<br>
-        ✌️ <b>Peace Sign</b> ➔ Square Shape<br>
+        ☝️ <b>Index Finger UP</b> ➔ Royal Crown 👑<br>
+        ✌️ <b>Peace Sign</b> ➔ Butterfly 🦋<br>
+        👍 <b>Thumbs Up</b> ➔ Heart Shape ❤️<br>
         ✊ <b>Fist / No Hand</b> ➔ Galaxy Cloud
       </div>
     </div>
@@ -83,20 +87,20 @@
   <div id="canvas-container"></div>
 
   <script>
-    // Optimized particle count for smooth 60fps performance on tablets
-    const PARTICLE_COUNT = 2200;
+    const PARTICLE_COUNT = 2400;
     let scene, camera, renderer, particleSystem;
     
     let currentPositions = new Float32Array(PARTICLE_COUNT * 3);
     let spacePositions = new Float32Array(PARTICLE_COUNT * 3);
     let heartPositions = new Float32Array(PARTICLE_COUNT * 3);
     let namePositions = new Float32Array(PARTICLE_COUNT * 3);
-    let squarePositions = new Float32Array(PARTICLE_COUNT * 3);
+    let crownPositions = new Float32Array(PARTICLE_COUNT * 3);
+    let butterflyPositions = new Float32Array(PARTICLE_COUNT * 3);
 
     let activeTarget = 'space'; 
     let desiredColor = new THREE.Color(0x00f0ff);
 
-    // Create glowing circle particle texture
+    // Glowing particle texture
     function createParticleTexture() {
       const canvas = document.createElement('canvas');
       canvas.width = 32;
@@ -113,16 +117,16 @@
       return new THREE.CanvasTexture(canvas);
     }
 
-    // Build ultra-clear particle layouts
+    // Mathematical shape generators (strictly bounded)
     function buildPositions() {
       
-      // 1. GALAXY SPHERE
+      // 1. GALAXY CLOUD
       for (let i = 0; i < PARTICLE_COUNT; i++) {
         const u = Math.random();
         const v = Math.random();
         const theta = u * 2.0 * Math.PI;
         const phi = Math.acos(2.0 * v - 1.0);
-        const r = Math.cbrt(Math.random()) * 20;
+        const r = Math.cbrt(Math.random()) * 15;
 
         spacePositions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
         spacePositions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
@@ -133,30 +137,30 @@
         currentPositions[i * 3 + 2] = spacePositions[i * 3 + 2];
       }
 
-      // 2. CLEAR HEART SHAPE
+      // 2. PERFECT HEART SHAPE
       for (let i = 0; i < PARTICLE_COUNT; i++) {
         const t = (i / PARTICLE_COUNT) * Math.PI * 2;
         const x = 16 * Math.pow(Math.sin(t), 3);
         const y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
         
-        heartPositions[i * 3] = x * 0.85;
-        heartPositions[i * 3 + 1] = y * 0.85;
+        heartPositions[i * 3] = x * 0.6;
+        heartPositions[i * 3 + 1] = y * 0.6;
         heartPositions[i * 3 + 2] = (Math.random() - 0.5) * 1.5;
       }
 
-      // 3. ULTRA-READABLE BIG BOLD TEXT ("BHUMI & AYUSH")
+      // 3. TEXT "BHUMI & AYUSH" (Scaled down to keep inside screen)
       const canvas = document.createElement('canvas');
-      canvas.width = 1200;
+      canvas.width = 1000;
       canvas.height = 300;
       const ctx = canvas.getContext('2d');
       
       ctx.fillStyle = "#000000";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = "#ffffff";
-      ctx.font = "900 85px Arial, Helvetica, sans-serif";
+      ctx.font = "900 60px Arial, Helvetica, sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("BHUMI & AYUSH", 600, 150);
+      ctx.fillText("BHUMI & AYUSH", 500, 150);
 
       const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const points = [];
@@ -166,8 +170,8 @@
           const alpha = imgData.data[(y * canvas.width + x) * 4];
           if (alpha > 128) {
             points.push({
-              x: (x - 600) * 0.055,
-              y: (150 - y) * 0.055
+              x: (x - 500) * 0.035,
+              y: (150 - y) * 0.035
             });
           }
         }
@@ -180,18 +184,36 @@
         namePositions[i * 3 + 2] = (Math.random() - 0.5) * 0.5;
       }
 
-      // 4. CLEAR SQUARE
-      const size = 20;
+      // 4. ROYAL CROWN SHAPE 👑
       for (let i = 0; i < PARTICLE_COUNT; i++) {
-        const edge = i % 4;
-        const progress = (Math.random() - 0.5) * size;
+        const progress = (i / PARTICLE_COUNT) * Math.PI;
+        const x = (i / PARTICLE_COUNT - 0.5) * 18;
+        let y = 0;
 
-        if (edge === 0) { squarePositions[i*3] = progress; squarePositions[i*3+1] = size/2; }
-        else if (edge === 1) { squarePositions[i*3] = size/2; squarePositions[i*3+1] = progress; }
-        else if (edge === 2) { squarePositions[i*3] = progress; squarePositions[i*3+1] = -size/2; }
-        else { squarePositions[i*3] = -size/2; squarePositions[i*3+1] = progress; }
+        // Peak profile equation for 5 crown points
+        y = Math.sin(progress * 5) * 3 + Math.sin(progress * 1) * 2 - 2;
+        
+        // Add base rim
+        if (i % 5 === 0) {
+          y = -4;
+        }
 
-        squarePositions[i * 3 + 2] = (Math.random() - 0.5) * 1.0;
+        crownPositions[i * 3] = x;
+        crownPositions[i * 3 + 1] = y;
+        crownPositions[i * 3 + 2] = (Math.random() - 0.5) * 1.5;
+      }
+
+      // 5. BUTTERFLY SHAPE 🦋
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        const t = (i / PARTICLE_COUNT) * Math.PI * 12;
+        const r = Math.exp(Math.cos(t)) - 2 * Math.cos(4 * t) + Math.pow(Math.sin(t / 12), 5);
+        
+        const x = r * Math.sin(t) * 2.8;
+        const y = r * Math.cos(t) * 2.8;
+
+        butterflyPositions[i * 3] = x;
+        butterflyPositions[i * 3 + 1] = y;
+        butterflyPositions[i * 3 + 2] = (Math.random() - 0.5) * 1.5;
       }
     }
 
@@ -199,8 +221,9 @@
       const container = document.getElementById('canvas-container');
       scene = new THREE.Scene();
 
+      // Camera distance set to 36 so everything stays inside bounds comfortably
       camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.z = 28;
+      camera.position.z = 36;
 
       renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -213,7 +236,7 @@
       geometry.setAttribute('position', new THREE.Float32BufferAttribute(currentPositions, 3));
 
       const material = new THREE.PointsMaterial({
-        size: 0.5,
+        size: 0.45,
         map: createParticleTexture(),
         color: desiredColor,
         transparent: true,
@@ -244,23 +267,26 @@
       } else if (activeTarget === 'name') {
         targetArray = namePositions;
         desiredColor.setHex(0x00ffff); // Neon Cyan
-      } else if (activeTarget === 'square') {
-        targetArray = squarePositions;
-        desiredColor.setHex(0x00ff66); // Bright Green
+      } else if (activeTarget === 'crown') {
+        targetArray = crownPositions;
+        desiredColor.setHex(0xffd700); // Royal Gold
+      } else if (activeTarget === 'butterfly') {
+        targetArray = butterflyPositions;
+        desiredColor.setHex(0xe000ff); // Magenta/Violet
       } else {
         desiredColor.setHex(0xffaa00); // Amber Yellow Cloud
       }
 
-      // Smooth position morphing interpolation
+      // Smooth Morph Interpolation
       for (let i = 0; i < PARTICLE_COUNT * 3; i++) {
-        positions[i] += (targetArray[i] - positions[i]) * 0.1;
+        positions[i] += (targetArray[i] - positions[i]) * 0.09;
       }
       particleSystem.geometry.attributes.position.needsUpdate = true;
 
-      // Color transition
+      // Color Transition
       particleSystem.material.color.lerp(desiredColor, 0.08);
 
-      // Rotate galaxy sphere
+      // Rotate galaxy sphere gently
       if (activeTarget === 'space') {
         particleSystem.rotation.y += 0.003;
       } else {
@@ -289,36 +315,42 @@
         if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
           const lm = results.multiHandLandmarks[0];
 
-          // Check basic finger positions
+          // Finger states
           const indexUp = lm[8].y < lm[6].y;
           const middleUp = lm[12].y < lm[10].y;
           const ringUp = lm[16].y < lm[14].y;
           const pinkyUp = lm[20].y < lm[18].y;
           const thumbUp = lm[4].y < lm[3].y && lm[4].y < lm[8].y;
 
-          // Simple Gesture Logic:
+          // Gesture Logic
           if (indexUp && middleUp && ringUp && pinkyUp) {
             // 🖐️ OPEN HAND -> BHUMI & AYUSH TEXT
             activeTarget = 'name';
             statusText.innerHTML = "Gesture: <b>🖐️ Open Hand ('BHUMI & AYUSH')</b>";
             statusText.style.color = "#00ffff";
           } 
+          else if (indexUp && !middleUp && !ringUp && !pinkyUp && !thumbUp) {
+            // ☝️ INDEX FINGER UP -> ROYAL CROWN
+            activeTarget = 'crown';
+            statusText.innerHTML = "Gesture: <b>☝️ Index UP (Crown 👑)</b>";
+            statusText.style.color = "#ffd700";
+          } 
+          else if (indexUp && middleUp && !ringUp && !pinkyUp) {
+            // ✌️ PEACE SIGN -> BUTTERFLY
+            activeTarget = 'butterfly';
+            statusText.innerHTML = "Gesture: <b>✌️ Peace Sign (Butterfly 🦋)</b>";
+            statusText.style.color = "#e000ff";
+          } 
           else if (thumbUp && !indexUp && !middleUp) {
-            // 👍 THUMBS UP -> HEART
+            // 👍 THUMBS UP -> HEART SHAPE
             activeTarget = 'heart';
             statusText.innerHTML = "Gesture: <b>👍 Thumbs Up (Heart ❤️)</b>";
             statusText.style.color = "#ff0066";
           } 
-          else if (indexUp && middleUp && !ringUp && !pinkyUp) {
-            // ✌️ PEACE SIGN -> SQUARE
-            activeTarget = 'square';
-            statusText.innerHTML = "Gesture: <b>✌️ Peace Sign (Square 🟩)</b>";
-            statusText.style.color = "#00ff66";
-          } 
           else {
             // ✊ FIST / NEUTRAL -> GALAXY CLOUD
             activeTarget = 'space';
-            statusText.innerHTML = "Gesture: <b>Hand Detected (Show Gesture)</b>";
+            statusText.innerHTML = "Gesture: <b>Hand Detected (Show Sign)</b>";
             statusText.style.color = "#ffffff";
           }
         } else {
