@@ -74,7 +74,7 @@
       <h3>PARTICLE CONTROLLER</h3>
       <p id="gesture-status" style="font-weight: bold; color: #ff007f; margin: 0 0 6px 0;">Status: Starting Camera...</p>
       <div class="gesture-hint">
-        🖐️ <b>Open Hand</b> ➔ Text "BHUMI & AYUSH"<br>
+        🖐️ <b>Open Hand</b> ➔ Text "GARIMA & AYUSH"<br>
         ☝️ <b>Index Finger UP</b> ➔ Royal Crown 👑<br>
         ✌️ <b>Peace Sign</b> ➔ Butterfly 🦋<br>
         👍 <b>Thumbs Up</b> ➔ Heart Shape ❤️<br>
@@ -148,7 +148,7 @@
         heartPositions[i * 3 + 2] = (Math.random() - 0.5) * 1.5;
       }
 
-      // 3. TEXT "BHUMI & AYUSH" (Scaled down to keep inside screen)
+      // 3. TEXT "GARIMA & AYUSH" (Scaled down to keep inside screen)
       const canvas = document.createElement('canvas');
       canvas.width = 1000;
       canvas.height = 300;
@@ -160,7 +160,7 @@
       ctx.font = "900 60px Arial, Helvetica, sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("BHUMI & AYUSH", 500, 150);
+      ctx.fillText("GARIMA & AYUSH", 500, 150);
 
       const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const points = [];
@@ -324,9 +324,9 @@
 
           // Gesture Logic
           if (indexUp && middleUp && ringUp && pinkyUp) {
-            // 🖐️ OPEN HAND -> BHUMI & AYUSH TEXT
+            // 🖐️ OPEN HAND -> GARIMA & AYUSH TEXT
             activeTarget = 'name';
-            statusText.innerHTML = "Gesture: <b>🖐️ Open Hand ('BHUMI & AYUSH')</b>";
+            statusText.innerHTML = "Gesture: <b>🖐️ Open Hand ('GARIMA & AYUSH')</b>";
             statusText.style.color = "#00ffff";
           } 
           else if (indexUp && !middleUp && !ringUp && !pinkyUp && !thumbUp) {
