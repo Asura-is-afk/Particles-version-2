@@ -74,7 +74,7 @@
       <h3>PARTICLE CONTROLLER</h3>
       <p id="gesture-status" style="font-weight: bold; color: #ff007f; margin: 0 0 6px 0;">Status: Starting Camera...</p>
       <div class="gesture-hint">
-        🖐️ <b>Open Hand</b> ➔ Text "GAURAV & ARYAN"<br>
+        🖐️ <b>Open Hand</b> ➔ Text "GAURAV LOVES ARYAN"<br>
         ☝️ <b>Index Finger UP</b> ➔ Royal Crown 👑<br>
         ✌️ <b>Peace Sign</b> ➔ Butterfly 🦋<br>
         👍 <b>Thumbs Up</b> ➔ Heart Shape ❤️<br>
@@ -149,7 +149,7 @@
         heartPositions[i * 3 + 2] = (Math.random() - 0.5) * 1.5;
       }
 
-      // 3. TEXT "GAURAV & ARYAN" (Scaled down to keep inside screen)
+      // 3. TEXT "GAURAV LOVES ARYAN" (Scaled to fit screen smoothly)
       const canvas = document.createElement('canvas');
       canvas.width = 1000;
       canvas.height = 300;
@@ -158,10 +158,10 @@
       ctx.fillStyle = "#000000";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = "#ffffff";
-      ctx.font = "900 60px Arial, Helvetica, sans-serif";
+      ctx.font = "900 52px Arial, Helvetica, sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("GAURAV & ARYAN", 500, 150);
+      ctx.fillText("GAURAV LOVES ARYAN", 500, 150);
 
       let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       let points = [];
@@ -365,9 +365,9 @@
 
           // Gesture Logic
           if (indexUp && middleUp && ringUp && pinkyUp) {
-            // 🖐️ OPEN HAND -> GAURAV & ARYAN TEXT
+            // 🖐️ OPEN HAND -> GAURAV LOVES ARYAN TEXT
             activeTarget = 'name';
-            statusText.innerHTML = "Gesture: <b>🖐️ Open Hand ('GAURAV & ARYAN')</b>";
+            statusText.innerHTML = "Gesture: <b>🖐️ Open Hand ('GAURAV LOVES ARYAN')</b>";
             statusText.style.color = "#00ffff";
           } 
           else if (indexUp && !middleUp && !ringUp && !pinkyUp && !thumbUp) {
