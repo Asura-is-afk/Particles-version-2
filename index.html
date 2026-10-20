@@ -74,7 +74,7 @@
       <h3>PARTICLE CONTROLLER</h3>
       <p id="gesture-status" style="font-weight: bold; color: #ff007f; margin: 0 0 6px 0;">Status: Starting Camera...</p>
       <div class="gesture-hint">
-        🖐️ <b>Open Hand</b> ➔ Text "GARIMA & AYUSH"<br>
+        🖐️ <b>Open Hand</b> ➔ Text "GAURAV & ARYAN"<br>
         ☝️ <b>Index Finger UP</b> ➔ Royal Crown 👑<br>
         ✌️ <b>Peace Sign</b> ➔ Butterfly 🦋<br>
         👍 <b>Thumbs Up</b> ➔ Heart Shape ❤️<br>
@@ -94,6 +94,7 @@
     let spacePositions = new Float32Array(PARTICLE_COUNT * 3);
     let heartPositions = new Float32Array(PARTICLE_COUNT * 3);
     let namePositions = new Float32Array(PARTICLE_COUNT * 3);
+    let secretPositions = new Float32Array(PARTICLE_COUNT * 3);
     let crownPositions = new Float32Array(PARTICLE_COUNT * 3);
     let butterflyPositions = new Float32Array(PARTICLE_COUNT * 3);
 
@@ -148,7 +149,7 @@
         heartPositions[i * 3 + 2] = (Math.random() - 0.5) * 1.5;
       }
 
-      // 3. TEXT "GARIMA & AYUSH" (Scaled down to keep inside screen)
+      // 3. TEXT "GAURAV & ARYAN" (Scaled down to keep inside screen)
       const canvas = document.createElement('canvas');
       canvas.width = 1000;
       canvas.height = 300;
@@ -160,10 +161,10 @@
       ctx.font = "900 60px Arial, Helvetica, sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("GARIMA & AYUSH", 500, 150);
+      ctx.fillText("GAURAV & ARYAN", 500, 150);
 
-      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const points = [];
+      let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      let points = [];
 
       for (let y = 0; y < canvas.height; y += 4) {
         for (let x = 0; x < canvas.width; x += 4) {
@@ -182,6 +183,37 @@
         namePositions[i * 3] = pt.x;
         namePositions[i * 3 + 1] = pt.y;
         namePositions[i * 3 + 2] = (Math.random() - 0.5) * 0.5;
+      }
+
+      // 3B. SECRET TEXT "NITI TUMHARI BHABHI HAI"
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "900 45px Arial, Helvetica, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("NITI TUMHARI BHABHI HAI", 500, 150);
+
+      imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      points = [];
+
+      for (let y = 0; y < canvas.height; y += 4) {
+        for (let x = 0; x < canvas.width; x += 4) {
+          const alpha = imgData.data[(y * canvas.width + x) * 4];
+          if (alpha > 128) {
+            points.push({
+              x: (x - 500) * 0.035,
+              y: (150 - y) * 0.035
+            });
+          }
+        }
+      }
+
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        const pt = points[i % points.length];
+        secretPositions[i * 3] = pt.x;
+        secretPositions[i * 3 + 1] = pt.y;
+        secretPositions[i * 3 + 2] = (Math.random() - 0.5) * 0.5;
       }
 
       // 4. ROYAL CROWN SHAPE 👑
@@ -267,6 +299,9 @@
       } else if (activeTarget === 'name') {
         targetArray = namePositions;
         desiredColor.setHex(0x00ffff); // Neon Cyan
+      } else if (activeTarget === 'secret') {
+        targetArray = secretPositions;
+        desiredColor.setHex(0xff007f); // Neon Pink
       } else if (activeTarget === 'crown') {
         targetArray = crownPositions;
         desiredColor.setHex(0xffd700); // Royal Gold
@@ -305,14 +340,20 @@
       });
 
       hands.setOptions({
-        maxNumHands: 1,
+        maxNumHands: 2,
         modelComplexity: 0,
         minDetectionConfidence: 0.5,
         minTrackingConfidence: 0.5
       });
 
       hands.onResults((results) => {
-        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length >= 2) {
+          // SECRET GESTURE: BOTH HANDS SHOWN
+          activeTarget = 'secret';
+          statusText.innerHTML = "Gesture: <b>🙌 Secret Reveal ('NITI TUMHARI BHABHI HAI')</b>";
+          statusText.style.color = "#ff007f";
+        }
+        else if (results.multiHandLandmarks && results.multiHandLandmarks.length === 1) {
           const lm = results.multiHandLandmarks[0];
 
           // Finger states
@@ -324,9 +365,9 @@
 
           // Gesture Logic
           if (indexUp && middleUp && ringUp && pinkyUp) {
-            // 🖐️ OPEN HAND -> GARIMA & AYUSH TEXT
+            // 🖐️ OPEN HAND -> GAURAV & ARYAN TEXT
             activeTarget = 'name';
-            statusText.innerHTML = "Gesture: <b>🖐️ Open Hand ('GARIMA & AYUSH')</b>";
+            statusText.innerHTML = "Gesture: <b>🖐️ Open Hand ('GAURAV & ARYAN')</b>";
             statusText.style.color = "#00ffff";
           } 
           else if (indexUp && !middleUp && !ringUp && !pinkyUp && !thumbUp) {
